@@ -1,0 +1,77 @@
+--identifuing null values--
+Delete from dbo.googleplaystore
+where App is null
+or Category is null
+or Rating is null
+or Reviews is null
+or Size is null
+or Installs is null
+or Type is null
+or Price is null
+or Content_Rating is null
+or Genres is null
+or Last_Updated is null
+or Current_Ver is null
+or  Android_Ver is null
+
+--Overall view of dataset--
+select 
+count(Distinct App) as Total_App,
+count(Distinct Category) as Total_Category
+from dbo.googleplaystore
+
+--Explore app Categories--
+select distinct(category),count(app) as Total_app
+from dbo.googleplaystore
+group by category
+order by Total_app desc
+
+--Top 5 ctegory with total apps
+select top 5 category,count(app) as Total_app
+from dbo.googleplaystore
+group by category
+order by Total_app desc 
+
+--top rated free apps--
+select App,Category,Rating,Reviews
+from dbo.googleplaystore
+where type='Free' AND Rating <>'NaN'
+order by Rating desc
+
+--Most Reviewed Apps--
+select Top 10 category,app,reviews
+from dbo.googleplaystore
+order by CAST(reviews AS INTEGER) desc
+
+--Average rating by Category--
+select Top 5 category,avg(TRY_CAST(rating as float)) as Average
+from dbo.googleplaystore
+group by category
+order by Average desc
+
+--Top Category by number of installs--
+select Top 5 category,
+SUM(CAST(REPLACE(SUBSTRING(Installs, 1, PATINDEX('%[^0-9]%', Installs + ' ') - 1), ',' , ' ') AS INT)) AS  No_Of_Installs
+from dbo.googleplaystore
+group by category
+order by No_Of_Installs desc
+
+--avgerage sentiment polarity by app category--
+select Top 10
+category,avg(TRY_CAST(Sentiment_Polarity as float)) as avg_sentiment_polarity
+from dbo.googleplaystore
+join dbo.googleplaystore_user_reviews
+on dbo.googleplaystore.app=dbo.googleplaystore_user_reviews.app
+group by Category
+order by avg_sentiment_polarity desc
+
+--sentiment reviews by app category--
+select category,sentiment,count(*) as total_sentiment
+from dbo.googleplaystore
+join dbo.googleplaystore_user_reviews
+on dbo.googleplaystore.App=dbo.googleplaystore_user_reviews.app
+where sentiment<>'nan'
+group by category,sentiment
+order by total_sentiment desc
+ 
+ 
